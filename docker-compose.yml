@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  ruby:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    
+    restart: unless-stopped
+    depends_on:
+      chrome:
+        condition: service_healthy
+
+  chrome:
+    image: "browserless/chrome:latest"
+    shm_size: 2g
+    ports:
+      - "8890:3000"
+    environment:
+      - MAX_CONCURRENT_SESSIONS=1
+      - MAX_QUEUE_LENGTH=0
+      - DEFAULT_BLOCK_ADS=true
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5

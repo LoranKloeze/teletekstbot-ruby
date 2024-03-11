@@ -1,0 +1,117 @@
+class App
+  CHROME_HOST = ENV["CHROME_HOST"]
+  DATA_LOCATION = ENV["DATA_LOCATION"]
+
+  attr_reader :log
+
+  def initialize(log)
+    @log = log
+  end
+
+  def run
+    log.info "Starting deamon"
+
+    updated_pages = contents_and_screenshots(fetch_updated_pages)
+    post_mastodon(updated_pages)
+  end
+
+  private
+
+  def post_mastodon(pages)
+    log.info "Posting to Mastodon"
+    pages.each do |page|
+      Services::MastodonService.new(log).post(page)
+    end
+  end
+
+  def post_bluesky(pages)
+    log.info "Posting to Bluesky"
+  end
+
+  def contents_and_screenshots(pages)
+    pages.map do |page|
+      page_nr = page[:page_nr]
+
+      screenshot_path = File.join(DATA_LOCATION, "regular#{page_nr}.png")
+
+      browser = Capybara.current_session
+      browser.visit "https://nos.nl/teletekst##{page_nr}"
+      browser.assert_selector("#fastText2Green")
+      browser.execute_script("document.getElementById('sterad-container').remove()")
+
+      # Get screenshot
+      browser.save_screenshot(screenshot_path)
+      cropped_screenshot_path = Services::CropImageService.new(screenshot_path, page_nr).crop
+      log.info "Saved a cropped screenshot at #{cropped_screenshot_path}"
+
+      # Get contents
+      rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
+      browser.driver.quit
+
+      title = []
+      body = []
+      section = :outside
+
+      rows.each_with_index do |row, idx|
+        next if idx < 2
+        section = :title if idx == 2
+
+        if section == :title
+          if row.start_with?("")
+            section = :body
+            next
+          end
+          title << row.strip
+        end
+
+        if section == :body
+          if row.start_with?("")
+            break
+          end
+          body << row.delete("").strip
+        end
+      end
+
+      Models::Page.new.tap do |p|
+        p.page_nr = page_nr
+        p.title = title.join(" ")
+        p.body = body.join("\n")
+        p.screenshot = cropped_screenshot_path
+      end
+    end
+  end
+
+  def fetch_updated_pages
+    browser = Capybara.current_session
+    browser.visit "https://nos.nl/teletekst#101"
+    current_pages = []
+    rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
+    rows.each_with_index do |row, idx|
+      next if idx < 5
+
+      page_nr = row[-3..].to_i
+      next unless page_nr > 100
+
+      current_pages << {page_nr: page_nr, title: row[0..-4].strip}
+    end
+
+    updated_pages = []
+
+    pages_cache = File.join(DATA_LOCATION, "pages.json")
+    if File.exist?(pages_cache)
+      saved_pages = File.read(pages_cache)
+      saved_pages = JSON.parse(saved_pages)
+      current_pages.each do |current_page|
+        saved_page = saved_pages.find { |sp| sp["page_nr"] == current_page[:page_nr] }
+        if saved_page.nil? || saved_page["title"] != current_page[:title]
+          updated_pages << current_page
+        end
+      end
+    else
+      updated_pages = current_pages
+    end
+
+    File.write(pages_cache, current_pages.to_json)
+    updated_pages
+  end
+end
