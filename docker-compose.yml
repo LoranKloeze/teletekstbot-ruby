@@ -29,6 +29,7 @@ services:
     shm_size: 2g
     ports:
       - "8890:3000"
+    restart: unless-stopped
     environment:
       - MAX_CONCURRENT_SESSIONS=1
       - MAX_QUEUE_LENGTH=0
