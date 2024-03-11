@@ -35,7 +35,7 @@ services:
       - MAX_QUEUE_LENGTH=0
       - DEFAULT_BLOCK_ADS=true
       - HOST=0.0.0.0
-      - CONNECTION_TIMEOUT=600000
+      - CONNECTION_TIMEOUT=21600000 # 6 hours
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
       interval: 2s
