@@ -13,13 +13,19 @@ class App
     log.info "Starting deamon"
     log.info DRY_RUN ? "Running in dry run mode" : "Running in live mode"
 
-    updated_pages = contents_and_screenshots(fetch_updated_pages)
-    if updated_pages.empty?
-      log.info "No updated pages found"
-    else
-      log.info "Found updated pages: #{updated_pages.map { |p| p.page_nr }.join(", ")}"
-      post_mastodon(updated_pages)
-      post_bluesky(updated_pages)
+    loop do
+      log.info "Checking for new updates"
+      updated_pages = contents_and_screenshots(fetch_updated_pages)
+      if updated_pages.empty?
+        log.info "No updated pages found"
+      else
+        log.info "Found updated pages: #{updated_pages.map { |p| p.page_nr }.join(", ")}"
+        post_mastodon(updated_pages)
+        post_bluesky(updated_pages)
+      end
+
+      log.info "Done..., waiting 3 minutes"
+      sleep 180
     end
   end
 
