@@ -1,6 +1,7 @@
 class App
   CHROME_HOST = ENV["CHROME_HOST"]
   DATA_LOCATION = ENV["DATA_LOCATION"]
+  DRY_RUN = ENV["DRY_RUN"] == "true"
 
   attr_reader :log
 
@@ -10,9 +11,16 @@ class App
 
   def run
     log.info "Starting deamon"
+    log.info DRY_RUN ? "Running in dry run mode" : "Running in live mode"
 
     updated_pages = contents_and_screenshots(fetch_updated_pages)
-    post_mastodon(updated_pages)
+    if updated_pages.empty?
+      log.info "No updated pages found"
+    else
+      log.info "Found updated pages: #{updated_pages.map { |p| p.page_nr }.join(", ")}"
+      post_mastodon(updated_pages)
+      post_bluesky(updated_pages)
+    end
   end
 
   private
@@ -26,6 +34,9 @@ class App
 
   def post_bluesky(pages)
     log.info "Posting to Bluesky"
+    pages.each do |page|
+      Services::BlueskyService.new(log).post(page)
+    end
   end
 
   def contents_and_screenshots(pages)
