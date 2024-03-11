@@ -103,6 +103,8 @@ class App
     browser.visit "https://nos.nl/teletekst#101"
     current_pages = []
     rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
+    browser.driver.quit
+
     rows.each_with_index do |row, idx|
       next if idx < 5
 
