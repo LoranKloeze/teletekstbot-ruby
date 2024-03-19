@@ -11,7 +11,7 @@ module Models
     end
 
     def nos_link
-      "https://nos.nl/teletekst##{page_nr}"
+      "https://nos.nl/teletekst/#{page_nr}"
     end
   end
 end

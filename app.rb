@@ -52,7 +52,7 @@ class App
       screenshot_path = File.join(DATA_LOCATION, "regular#{page_nr}.png")
 
       browser = Capybara.current_session
-      browser.visit "https://nos.nl/teletekst##{page_nr}"
+      browser.visit "https://nos.nl/teletekst/#{page_nr}"
       browser.assert_selector("#fastText2Green")
       browser.execute_script("document.getElementById('sterad-container').remove()")
 
@@ -100,7 +100,7 @@ class App
 
   def fetch_updated_pages
     browser = Capybara.current_session
-    browser.visit "https://nos.nl/teletekst#101"
+    browser.visit "https://nos.nl/teletekst/101"
     current_pages = []
     rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
     browser.driver.quit
