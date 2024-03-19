@@ -61,8 +61,8 @@ class App
       cropped_screenshot_path = Services::CropImageService.new(screenshot_path, page_nr).crop
       log.info "Saved a cropped screenshot at #{cropped_screenshot_path}"
 
-      # Get contents
-      rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
+      # Get contents 
+      rows = browser.find_all('#content > section > div')[0].text.split("\n")
       browser.driver.quit
 
       title = []
@@ -102,7 +102,8 @@ class App
     browser = Capybara.current_session
     browser.visit "https://nos.nl/teletekst/101"
     current_pages = []
-    rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
+
+    rows = browser.find_all('#content > section > div')[1].text.split("\n")
     browser.driver.quit
 
     pages_seen = []
