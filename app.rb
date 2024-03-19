@@ -105,13 +105,16 @@ class App
     rows = browser.find("#content > section > div:nth-child(3)").text.split("\n")
     browser.driver.quit
 
+    pages_seen = []
     rows.each_with_index do |row, idx|
       next if idx < 5
 
       page_nr = row[-3..].to_i
       next unless page_nr > 100
-
+      next if pages_seen.include?(page_nr)
+      
       current_pages << {page_nr: page_nr, title: row[0..-4].strip}
+      pages_seen << page_nr
     end
 
     updated_pages = []
