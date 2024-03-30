@@ -2,7 +2,7 @@ module Services
   class CropImageService
     include Magick
     CROP_X = 50
-    CROP_Y = 150
+    CROP_Y = 110
     CROP_WIDTH = 483
     CROP_HEIGHT = 525
 
