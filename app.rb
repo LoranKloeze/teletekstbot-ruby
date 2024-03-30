@@ -103,7 +103,7 @@ class App
     browser.visit "https://nos.nl/teletekst/101"
     current_pages = []
 
-    rows = browser.find_all('#content > section > div')[1].text.split("\n")
+    rows = browser.find_all('#content > section > div')[0].text.split("\n")
     browser.driver.quit
 
     pages_seen = []
@@ -117,7 +117,6 @@ class App
       current_pages << {page_nr: page_nr, title: row[0..-4].strip}
       pages_seen << page_nr
     end
-
     updated_pages = []
 
     pages_cache = File.join(DATA_LOCATION, "pages.json")
