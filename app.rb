@@ -53,7 +53,7 @@ class App
 
       browser = Capybara.current_session
       browser.visit "https://nos.nl/teletekst/#{page_nr}"
-      browser.assert_selector("#fastText2Green")
+      browser.assert_selector("#teletekst-inhoud")
       browser.execute_script("document.getElementById('sterad-container').remove()")
 
       # Get screenshot
